@@ -288,6 +288,27 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    /**
+     * 🌟 VERSIÓN 5: GET /api/users/search/by-lastname?lastname=Pérez - Buscar por apellido
+     *
+     * Ejemplos:
+     * - /api/users/search/by-lastname?lastname=Pérez
+     * - /api/users/search/by-lastname?lastname=lopez
+     */
+    @GetMapping("/search/by-lastname")
+    @Operation(summary = "Buscar por apellido",
+            description = "Busca usuarios cuyo apellido contenga el valor ingresado (ignora mayúsculas/minúsculas)")
+    public ResponseEntity<List<UserDTO>> searchByLastName(
+            @Parameter(description = "Apellido a buscar", required = true, example = "Pérez")
+            @RequestParam String lastname) {
+
+        try {
+            List<UserDTO> users = userService.searchUsersByLastName(lastname);
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
     // ========================================
     // 📝 CREAR USUARIO

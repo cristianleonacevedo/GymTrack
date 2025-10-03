@@ -5,10 +5,10 @@ services:
     image: mysql:8.0
     container_name: cesde-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: 43191392
       MYSQL_DATABASE: cesde
-      MYSQL_USER: juanse
-      MYSQL_PASSWORD: password123
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 43191392
     ports:
       - "3307:3306"
     volumes:
@@ -29,8 +29,8 @@ services:
         condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/cesde?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: juanse
-      SPRING_DATASOURCE_PASSWORD: password123
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 43191392
       SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8080:8080"
