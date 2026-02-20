@@ -7,7 +7,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 43191392
       MYSQL_DATABASE: cesde
-      MYSQL_USER: root
+      MYSQL_USER: leon
       MYSQL_PASSWORD: 43191392
     ports:
       - "3307:3306"
@@ -29,7 +29,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/cesde?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_USERNAME: leon
       SPRING_DATASOURCE_PASSWORD: 43191392
       SPRING_PROFILES_ACTIVE: docker
     ports:

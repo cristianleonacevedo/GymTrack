@@ -22,7 +22,7 @@ public class ProjectApplication {
 
     System.out.println("\n" +
       "====================================\n" +
-      "✅ CESDE - User API started!\n" +
+      "✅ CESDE - API started!\n" +
       "🌐 URL: http://localhost:8080/api/users\n" +
       "📖 Swagger: http://localhost:8080/swagger-ui.html\n" +
       "📚 Educational project - Spring Boot 3.x\n" +

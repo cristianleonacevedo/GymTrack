@@ -1,152 +1,76 @@
 package com.cesde.project_spring_boot.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
-/**
- * Entity User - Representa un usuario en la base de datos.
- *
- * @Entity: Indica que esta clase es una entidad JPA. (Le dice a Spring que esta clase es una tabla en la base de datos)
- * @Table: Especifica el nombre de la tabla.
- */
 @Entity
-@Table(name = "users")
+@Table(name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = "email"),
+                @UniqueConstraint(columnNames = "documento")
+        })
 public class User {
 
-    // ID unico para cada usuario
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-incremental
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Nombre del usuario (obligatorio, no puede estar vacío)
-    @NotBlank(message = "First name is mandatory")
-    @Column(name = "first_name", nullable = false, length = 50)
-    private String firstName;
+    // datos basicos del miembro
+    private String nombre;
+    private String apellido;
 
-    // Apellido del usuario (obligatorio, no puede estar vacío)
-    @NotBlank(message = "Last name is mandatory")
-    @Column(name = "last_name", nullable = false, length = 50)
-    private String lastName;
+    @Column(nullable = false)
+    private String documento;
 
-    // Email del usuario (obligatorio, no puede estar vacío, debe ser único y válido)
-    @NotBlank(message = "Email is mandatory")
-    @Email(message = "Email should be valid")
-    @Column(name = "email", nullable = false, unique = true, length = 100)
+    @Column(nullable = false)
     private String email;
 
-    // Teléfono del usuario (opcional)
-    @Column(name = "phone", length = 15)
-    private String phone;
+    private String telefono;
+    private LocalDate fechaNacimiento;
+    private String contactoEmergencia;
+    private String nombre_contacto;
 
-    @ManyToOne(fetch =  FetchType.LAZY)
-    @JoinColumn(name = "company_id")
-    private Company company;
+    private String password;
 
-    // Fecha de creación del usuario (no puede ser nulo, no se puede actualizar)
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    // cosas de negocio
+    private String rol; // ADMIN, MIEMBRO, etc
+    private String estadoMembresia; // PENDIENTE, ACTIVA, BLOQUEADA...
 
-    // Fecha de última actualización del usuario (no puede ser nulo)
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    // getters y setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    // Constructor vacío (Requerido por JPA)
-    public User() { }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    // Constructor con parámetros
-    public User(String firstName, String lastName, String email, String phone, Company company) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.phone = phone;
-        this.company = company;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
+    public String getNombre_contacto() {return nombre_contacto;}
+    public void setNombre_contacto(String nombre_contacto) {this.nombre_contacto = nombre_contacto;}
 
-    // Método que se ejecuta antes de guardar un nuevo usuario
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
+    public String getApellido() { return apellido; }
+    public void setApellido(String apellido) { this.apellido = apellido; }
 
-    // Método que se ejecuta antes de actualizar un usuario existente
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+    public String getDocumento() { return documento; }
+    public void setDocumento(String documento) { this.documento = documento; }
 
-    // GETTERS y SETTERS (Necesarios para que Spring funcione)
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public Long getId() {
-        return id;
-    }
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public LocalDate getFechaNacimiento() { return fechaNacimiento; }
+    public void setFechaNacimiento(LocalDate fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
 
-    public String getFirstName() {
-        return firstName;
-    }
+    public String getContactoEmergencia() { return contactoEmergencia; }
+    public void setContactoEmergencia(String contactoEmergencia) { this.contactoEmergencia = contactoEmergencia; }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-    public String getLastName() {
-        return lastName;
-    }
+    public String getRol() { return rol; }
+    public void setRol(String rol) { this.rol = rol; }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public Company getCompany() {
-        return company;
-    }
-
-    public void setCompany(Company company) {
-        this.company = company;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    // Método auxiliar para obtener el nombre completo del usuario
-    public String getFullName() {
-        return this.firstName + " " + this.lastName;
-    }
+    public String getEstadoMembresia() { return estadoMembresia; }
+    public void setEstadoMembresia(String estadoMembresia) { this.estadoMembresia = estadoMembresia; }
 }
+
