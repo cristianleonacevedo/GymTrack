@@ -1,11 +1,19 @@
 package com.cesde.project_spring_boot.service;
 
+import com.cesde.project_spring_boot.dto.AuthResponse;
+import com.cesde.project_spring_boot.dto.LoginRequest;
 import com.cesde.project_spring_boot.dto.RegisterRequest;
 import com.cesde.project_spring_boot.model.User;
 import com.cesde.project_spring_boot.repository.UserRepository;
+import com.cesde.project_spring_boot.security.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class AuthService {
@@ -13,38 +21,96 @@ public class AuthService {
     @Autowired
     private UserRepository userRepository;
 
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
     public String register(RegisterRequest request) {
-
-        // validaciones simples (no tan limpias, pero reales)
-        if (userRepository.existsByEmail(request.email)) {
+        // Validar si ya existe
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("El email ya está registrado");
         }
 
-        if (userRepository.existsByDocumento(request.documento)) {
-            throw new RuntimeException("El documento ya existe");
-        }
-
         User user = new User();
-        user.setNombre(request.nombre);
-        user.setApellido(request.apellido);
-        user.setDocumento(request.documento);
-        user.setEmail(request.email);
-        user.setTelefono(request.telefono);
-        user.setFechaNacimiento(request.fecha_nacimiento);
-        user.setContactoEmergencia(request.contacto_emergencia);
-
-        // seguridad mínima decente
-        user.setPassword(encoder.encode(request.password));
-
-        // reglas de negocio de la historia
+        user.setNombre(request.getNombre());
+        user.setApellido(request.getApellido());
+        user.setEmail(request.getEmail());
+        user.setDocumento(request.getDocumento());
+        user.setTelefono(request.getTelefono());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRol("MIEMBRO");
         user.setEstadoMembresia("PENDIENTE");
+        user.setMembresiaActiva(false);
 
         userRepository.save(user);
+        return "Usuario registrado exitosamente";
+    }
 
-        // por ahora uno simple para cumplir la historia
-        return  user.getId().toString(); // corregir (JWT)
+    public AuthResponse login(LoginRequest request) {
+        // 1. Autenticar al usuario
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
+
+        // 2. Buscar el usuario
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // 3. Crear claims extra para el token
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("userId", user.getId());
+        extraClaims.put("email", user.getEmail());
+        extraClaims.put("rol", user.getRol());
+        extraClaims.put("membresiaActiva", user.getMembresiaActiva());
+
+        // 4. Generar tokens
+        String accessToken = jwtService.generateToken(extraClaims, user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        // 5. Retornar respuesta
+        return new AuthResponse(
+                accessToken,
+                refreshToken,
+                user.getId(),
+                user.getEmail(),
+                user.getRol(),
+                user.getMembresiaActiva()
+        );
+    }
+
+    public AuthResponse refreshToken(String refreshToken) {
+        String email = jwtService.extractUsername(refreshToken);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (jwtService.isTokenValid(refreshToken, user)) {
+            Map<String, Object> extraClaims = new HashMap<>();
+            extraClaims.put("userId", user.getId());
+            extraClaims.put("email", user.getEmail());
+            extraClaims.put("rol", user.getRol());
+            extraClaims.put("membresiaActiva", user.getMembresiaActiva());
+
+            String accessToken = jwtService.generateToken(extraClaims, user);
+            String newRefreshToken = jwtService.generateRefreshToken(user);
+
+            return new AuthResponse(
+                    accessToken,
+                    newRefreshToken,
+                    user.getId(),
+                    user.getEmail(),
+                    user.getRol(),
+                    user.getMembresiaActiva()
+            );
+        } else {
+            throw new RuntimeException("Refresh token inválido");
+        }
     }
 }

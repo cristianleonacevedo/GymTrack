@@ -2,6 +2,12 @@ package com.cesde.project_spring_boot.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
 @Table(name = "users",
@@ -9,7 +15,7 @@ import java.time.LocalDate;
                 @UniqueConstraint(columnNames = "email"),
                 @UniqueConstraint(columnNames = "documento")
         })
-public class User {
+public class User implements UserDetails {  // Implementa UserDetails
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,10 +39,42 @@ public class User {
     private String password;
 
     // cosas de negocio
-    private String rol; // ADMIN, MIEMBRO, etc
-    private String estadoMembresia; // PENDIENTE, ACTIVA, BLOQUEADA...
+    private String rol; // ADMIN, MIEMBRO
+    private String estadoMembresia; // PENDIENTE, ACTIVA, BLOQUEADA
+    private Boolean membresiaActiva; // NUEVO: true si estadoMembresia = "ACTIVA"
 
-    // getters y setters
+    // ===== MÉTODOS DE USERDETAILS =====
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_" + rol));
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email; // Usamos email como username
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    // ===== GETTERS Y SETTERS =====
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -64,6 +102,7 @@ public class User {
     public String getContactoEmergencia() { return contactoEmergencia; }
     public void setContactoEmergencia(String contactoEmergencia) { this.contactoEmergencia = contactoEmergencia; }
 
+    @Override
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
@@ -71,6 +110,14 @@ public class User {
     public void setRol(String rol) { this.rol = rol; }
 
     public String getEstadoMembresia() { return estadoMembresia; }
-    public void setEstadoMembresia(String estadoMembresia) { this.estadoMembresia = estadoMembresia; }
-}
+    public void setEstadoMembresia(String estadoMembresia) {
+        this.estadoMembresia = estadoMembresia;
+        // Actualiza automáticamente membresiaActiva
+        this.membresiaActiva = "ACTIVA".equals(estadoMembresia);
+    }
 
+    public Boolean getMembresiaActiva() { return membresiaActiva; }
+    public void setMembresiaActiva(Boolean membresiaActiva) {
+        this.membresiaActiva = membresiaActiva;
+    }
+}
