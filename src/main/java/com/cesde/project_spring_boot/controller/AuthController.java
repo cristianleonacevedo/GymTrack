@@ -4,11 +4,14 @@ import com.cesde.project_spring_boot.dto.AuthResponse;
 import com.cesde.project_spring_boot.dto.LoginRequest;
 import com.cesde.project_spring_boot.dto.RegisterRequest;
 import com.cesde.project_spring_boot.service.AuthService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
+@Tag(name = "🔐 Autenticación", description = "Resgistro y Login de usuarios")
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")

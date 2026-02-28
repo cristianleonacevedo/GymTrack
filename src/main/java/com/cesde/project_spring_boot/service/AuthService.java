@@ -52,7 +52,7 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        // 1. Autenticar al usuario
+        // Autenticar al usuario
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
@@ -60,22 +60,22 @@ public class AuthService {
                 )
         );
 
-        // 2. Buscar el usuario
+        // Buscar el usuario
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // 3. Crear claims extra para el token
+        // Crear claims extra para el token
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("userId", user.getId());
         extraClaims.put("email", user.getEmail());
         extraClaims.put("rol", user.getRol());
         extraClaims.put("membresiaActiva", user.getMembresiaActiva());
 
-        // 4. Generar tokens
+        // Generar tokens
         String accessToken = jwtService.generateToken(extraClaims, user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
-        // 5. Retornar respuesta
+        // Retornar respuesta
         return new AuthResponse(
                 accessToken,
                 refreshToken,

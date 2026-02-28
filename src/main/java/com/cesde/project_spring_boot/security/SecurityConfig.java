@@ -30,7 +30,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // 📌 RUTAS PÚBLICAS - PERMITIR TODAS LAS DE SWAGGER
+                        // RUTAS PÚBLICAS - PERMITIR TODAS LAS DE SWAGGER
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/swagger-ui.html",
@@ -39,9 +39,7 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
-                        // Permitir consola H2
                         .requestMatchers("/h2-console/**").permitAll()
-                        // Cualquier otra ruta requiere autenticación
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -50,7 +48,6 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-        // Para que funcione la consola H2 (frames)
         http.headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
         return http.build();
