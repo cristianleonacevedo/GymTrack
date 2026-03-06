@@ -1,77 +1,44 @@
 package com.cesde.project_spring_boot.service;
 
-
-import com.cesde.project_spring_boot.dto.MembershipPlanRequest;
 import com.cesde.project_spring_boot.dto.MembershipPlanResponse;
 import com.cesde.project_spring_boot.model.MembershipPlan;
 import com.cesde.project_spring_boot.repository.MembershipPlanRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
-
+import java.util.stream.Collectors;
 
 @Service
 public class MembershipPlanService {
 
-    private final MembershipPlanRepository repository;
+    @Autowired
+    private MembershipPlanRepository planRepository;
 
-    public MembershipPlanService(MembershipPlanRepository repository) {
-        this.repository = repository;
+    public List<MembershipPlanResponse> getActivePlans() {
+        // 1. Obtener planes activos
+        List<MembershipPlan> planes = planRepository.findByActiveTrue();
+
+        // 2. Ordenar por precio ascendente (usando Comparator)
+        planes.sort(Comparator.comparing(MembershipPlan::getPrice));
+
+        // 3. Convertir a DTO y devolver
+        return planes.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
     }
 
-    public MembershipPlanResponse create(MembershipPlanRequest request) {
-        if (repository.existsByName(request.getName())) {
-            throw new IllegalArgumentException("Plan name already exists");
-        }
-
-        MembershipPlan plan = new MembershipPlan();
-        mapRequestToEntity(request, plan);
-        plan.setActive(true);
-
-        return mapToResponse(repository.save(plan));
-    }
-
-    public List<MembershipPlanResponse> findActivePlans() {
-        return repository.findByActiveTrue()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
-    }
-
-    public MembershipPlanResponse update(Long id, MembershipPlanRequest request) {
-        MembershipPlan plan = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Plan not found"));
-
-        mapRequestToEntity(request, plan);
-        return mapToResponse(repository.save(plan));
-    }
-
-    public void deactivate(Long id) {
-        MembershipPlan plan = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Plan not found"));
-
-        plan.setActive(false);
-        repository.save(plan);
-    }
-
-    private void mapRequestToEntity(MembershipPlanRequest r, MembershipPlan p) {
-        p.setName(r.getName());
-        p.setDescription(r.getDescription());
-        p.setDurationDays(r.getDurationDays());
-        p.setPrice(r.getPrice());
-        p.setMaxGroupClasses(r.getMaxGroupClasses());
-        p.setIncludesLocker(r.getIncludesLocker());
-    }
-
-    private MembershipPlanResponse mapToResponse(MembershipPlan p) {
-        MembershipPlanResponse r = new MembershipPlanResponse();
-        r.setId(p.getId());
-        r.setName(p.getName());
-        r.setDescription(p.getDescription());
-        r.setDurationDays(p.getDurationDays());
-        r.setPrice(p.getPrice());
-        r.setMaxGroupClasses(p.getMaxGroupClasses());
-        r.setIncludesLocker(p.getIncludesLocker());
-        r.setActive(p.getActive());
-        return r;
+    private MembershipPlanResponse convertToResponse(MembershipPlan plan) {
+        return new MembershipPlanResponse(
+                plan.getId(),
+                plan.getName(),
+                plan.getDescription(),
+                plan.getDurationDays(),
+                plan.getPrice(),
+                plan.getMaxGroupClasses(),
+                plan.getIncludesLocker(),
+                plan.getActive()
+        );
     }
 }
